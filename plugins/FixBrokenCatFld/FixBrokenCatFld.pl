@@ -3,10 +3,11 @@ use strict;
 use warnings;
 use base qw( MT::Plugin );
 
+use MT::Category;
 use MT::Request;
 
 our $NAME = ( split /::/, __PACKAGE__ )[-1];
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 my $plugin = __PACKAGE__->new(
     {   name        => $NAME,
@@ -15,7 +16,8 @@ my $plugin = __PACKAGE__->new(
         version     => $VERSION,
         author_name => 'masiuchi',
         author_link => 'https://github.com/masiuchi',
-        plugin_link => 'https://github.com/masiuchi/mt-plugin-fix-broken-cat-fld',
+        plugin_link =>
+            'https://github.com/masiuchi/mt-plugin-fix-broken-cat-fld',
         description =>
             '<__trans phrase="Fix Categories or Folders which have no parent.">',
     }
@@ -33,6 +35,20 @@ sub init_registry {
             },
         }
     );
+}
+
+{
+    my $orig = \&MT::Category::remove;
+
+    no warnings 'redefine';
+    *MT::Category::remove = sub {
+        my ( $cat, @args ) = @_;
+
+        if ( ref($cat) eq 'MT::Folder' ) {
+            delete $cat->{__children};
+        }
+        return $orig->( $cat, @args );
+    };
 }
 
 sub _cms_pre_load_filt_list {
