@@ -81,8 +81,7 @@ sub _fix_broken_data {
 
     my @broken_data = grep { $_->parent && !$all_id{ $_->parent } } @all_data;
     foreach my $data (@broken_data) {
-        $data->parent(0);
-        $data->update;
+        $data->remove;
     }
 }
 
